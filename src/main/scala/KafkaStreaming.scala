@@ -1,9 +1,7 @@
 import kafka.serializer.StringDecoder
-
-import org.apache.spark.streaming._
-import org.apache.spark.streaming.StreamingContext._
-import org.apache.spark.streaming.kafka._
 import org.apache.spark.SparkConf
+import org.apache.spark.streaming._
+import org.apache.spark.streaming.kafka._
 
 /**
  * Consumes messages from one or more topics in Kafka and does wordcount.
@@ -16,14 +14,14 @@ import org.apache.spark.SparkConf
  *    topic1,topic2
  */
 
-object Test{
+object KafkaStreaming{
   def main(args: Array[String]) {
-    val brokers = "192.168.0.100:9092,192.168.0.100:9093,192.168.0.100:9094"
+    val brokers = "46.101.228.128:9092"
     val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
     val topicsSet = Set("ClusterTestTopic")
 
     // Create context with 2 second batch interval
-    val sparkConf = new SparkConf().setAppName("DirectKafkaWordCount")
+    val sparkConf = new SparkConf().setMaster("local[2]").setAppName("DirectKafkaWordCount")
     val ssc = new StreamingContext(sparkConf, Seconds(2))
 
     // Create direct kafka stream with brokers and topics
