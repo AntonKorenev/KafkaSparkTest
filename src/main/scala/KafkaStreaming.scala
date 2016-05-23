@@ -6,7 +6,12 @@ import org.apache.spark.streaming.kafka._
 object KafkaStreaming{
   def main(args: Array[String]) {
     val brokers = "localhost:9092"
-    val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
+    val zookeeper = "localhost:2181"
+    val sessionTimeout =  "1000"
+    val syncTimeout = "1000"
+    val commitInterval = "1000"
+    val group = "test-consumer-group"
+    val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers, "zookeeper.connect" -> zookeeper, "zookeeper.session.timeout.ms" -> sessionTimeout, "zookeeper.sync.time.ms" -> syncTimeout, "auto.commit.interval.ms" -> commitInterval, "group.id" -> group)
     val topicsSet = Set("ClusterTestTopic")
 
     // Create context with 2 second batch interval
