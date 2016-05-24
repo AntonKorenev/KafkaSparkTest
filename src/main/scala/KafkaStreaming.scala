@@ -16,7 +16,7 @@ object KafkaStreaming{
 
     // Create context with 2 second batch interval
     val sparkConf = new SparkConf().setMaster("local[2]").setAppName("DirectKafkaWordCount").set("spark.eventLog.enabled","false")
-    val ssc = new StreamingContext(sparkConf, Seconds(2))
+    val ssc = new StreamingContext(sparkConf, Seconds(20))
 
     // Create direct kafka stream with brokers and topics
 
