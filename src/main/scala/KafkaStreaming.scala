@@ -3,25 +3,19 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
 
-/**
- * Consumes messages from one or more topics in Kafka and does wordcount.
- * Usage: DirectKafkaWordCount <brokers> <topics>
- *   <brokers> is a list of one or more Kafka brokers
- *   <topics> is a list of one or more kafka topics to consume from
- *
- * Example:
- *    $ bin/run-example streaming.DirectKafkaWordCount broker1-host:port,broker2-host:port \
- *    topic1,topic2
- */
-
 object KafkaStreaming{
   def main(args: Array[String]) {
-    val brokers = "46.101.228.128:9092"
-    val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
+    val brokers = "localhost:9092"
+    val zookeeper = "localhost:2181"
+    val sessionTimeout =  "1000"
+    val syncTimeout = "1000"
+    val commitInterval = "1000"
+    val group = "test-consumer-group"
+    val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers, "zookeeper.connect" -> zookeeper, "zookeeper.session.timeout.ms" -> sessionTimeout, "zookeeper.sync.time.ms" -> syncTimeout, "auto.commit.interval.ms" -> commitInterval, "group.id" -> group)
     val topicsSet = Set("ClusterTestTopic")
 
     // Create context with 2 second batch interval
-    val sparkConf = new SparkConf().setMaster("local[2]").setAppName("DirectKafkaWordCount")
+    val sparkConf = new SparkConf().setMaster("local[2]").setAppName("DirectKafkaWordCount").set("spark.eventLog.enabled","false")
     val ssc = new StreamingContext(sparkConf, Seconds(2))
 
     // Create direct kafka stream with brokers and topics
@@ -30,10 +24,8 @@ object KafkaStreaming{
       ssc, kafkaParams, topicsSet)
 
     // Get the lines, split them into words, count the words and print
-    val lines = messages.map(_._2)
-    val words = lines.flatMap(_.split(" "))
-    val wordCounts = words.map(x => (x, 1L)).reduceByKey(_ + _)
-    wordCounts.print()
+    val wordCounts = messages.map(_._2).flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
+    wordCounts.foreachRDD(rdd => rdd.saveAsTextFile("result"))
 
     ssc.start()
     ssc.awaitTermination()
